@@ -87,6 +87,10 @@ func (p *predicateParser) getJoinFunction(op token.Token) (interface{}, error) {
 		fn = p.d.Operators.GT
 	case token.LSS:
 		fn = p.d.Operators.LT
+	case token.EQL:
+		fn = p.d.Operators.EQ
+	case token.NEQ:
+		fn = p.d.Operators.NEQ
 	}
 	if fn == nil {
 		return nil, fmt.Errorf("%v is not supported", op)
