@@ -53,7 +53,7 @@ func (p *predicateParser) parseNode(node ast.Node) (interface{}, error) {
 		if err != nil {
 			return nil, err
 		}
-		return createPredicate(fn, arguments)
+		return callFunction(fn, arguments)
 	case *ast.ParenExpr:
 		return p.parseNode(n.X)
 	}
@@ -124,6 +124,12 @@ func collectLiterals(nodes []ast.Expr) ([]interface{}, error) {
 
 func literalToValue(a *ast.BasicLit) (interface{}, error) {
 	switch a.Kind {
+	case token.FLOAT:
+		value, err := strconv.ParseFloat(a.Value, 64)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse argument: %s, error: %s", a.Value, err)
+		}
+		return value, nil
 	case token.INT:
 		value, err := strconv.Atoi(a.Value)
 		if err != nil {
@@ -137,20 +143,15 @@ func literalToValue(a *ast.BasicLit) (interface{}, error) {
 		}
 		return value, nil
 	}
-	return nil, fmt.Errorf("only integer and string literals are supported as function arguments")
+	return nil, fmt.Errorf("unsupported function argument type: '%v'", a.Kind)
 }
 
-func createPredicate(f interface{}, args []interface{}) (v interface{}, err error) {
+func callFunction(f interface{}, args []interface{}) (v interface{}, err error) {
 	defer func() {
 		if r := recover(); r != nil {
 			err = fmt.Errorf("%s", r)
 		}
 	}()
-	// This function can panic, that's why we are catching errors early
-	return callFunction(f, args)
-}
-
-func callFunction(f interface{}, args []interface{}) (interface{}, error) {
 	arguments := make([]reflect.Value, len(args))
 	for i, a := range args {
 		arguments[i] = reflect.ValueOf(a)

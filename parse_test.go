@@ -149,6 +149,20 @@ func (s *PredicateSuite) TestStrings(c *C) {
 	c.Assert(fn(2), Equals, true)
 }
 
+func (s *PredicateSuite) TestGTFloat64(c *C) {
+	p := s.getParser(c)
+
+	pr, err := p.Parse("Remainder(3) > 1.2")
+	c.Assert(err, IsNil)
+	c.Assert(pr, FitsTypeOf, divisibleBy(1))
+	fn := pr.(numberPredicate)
+	c.Assert(fn(1), Equals, false)
+	c.Assert(fn(2), Equals, true)
+	c.Assert(fn(3), Equals, false)
+	c.Assert(fn(4), Equals, false)
+	c.Assert(fn(5), Equals, true)
+}
+
 func (s *PredicateSuite) TestUnhappyCases(c *C) {
 	cases := []string{
 		")(",                   // invalid expression
@@ -198,9 +212,16 @@ func numberRemainder(divideBy int) numberMapper {
 	}
 }
 
-func numberGT(m numberMapper, value int) numberPredicate {
+func numberGT(m numberMapper, value interface{}) numberPredicate {
 	return func(v int) bool {
-		return m(v) > value
+		switch val := value.(type) {
+		case int:
+			return m(v) > val
+		case float64:
+			return m(v) > int(val)
+		default:
+			return true
+		}
 	}
 }
 
