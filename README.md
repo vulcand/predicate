@@ -7,6 +7,6 @@ This helpful for creating mini configuration languages, e.g. for setting up vari
 Using this library you can create interpreted languages like this one:
 
 ```
-LatencyMs() > 50 || ErrorRate > 0.2
+LatencyMs() > 50 || ErrorRate() > 0.2
 ```
 
