@@ -10,7 +10,7 @@ Latency() > 40 || ErrorRate() > 0.5.
 
 Here's an example of fully functional predicate language to deal with division remainders:
 
-```
+```go
 // takes number and returns true or false
 type numberPredicate func(v int) bool
 
