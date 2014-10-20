@@ -159,6 +159,19 @@ func callFunction(f interface{}, args []interface{}) (v interface{}, err error) 
 	fn := reflect.ValueOf(f)
 
 	ret := fn.Call(arguments)
-	i := ret[0].Interface()
-	return i, nil
+	switch len(ret) {
+	case 1:
+		return ret[0].Interface(), nil
+	case 2:
+		v, e := ret[0].Interface(), ret[1].Interface()
+		if e == nil {
+			return v, nil
+		}
+		err, ok := e.(error)
+		if !ok {
+			return nil, fmt.Errorf("expected error as a second return value, got %T", e)
+		}
+		return v, err
+	}
+	return nil, fmt.Errorf("expected at least one return argument for '%v'", fn)
 }

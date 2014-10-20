@@ -1,6 +1,7 @@
 package predicate
 
 import (
+	"fmt"
 	"testing"
 
 	. "gopkg.in/check.v1"
@@ -165,17 +166,18 @@ func (s *PredicateSuite) TestGTFloat64(c *C) {
 
 func (s *PredicateSuite) TestUnhappyCases(c *C) {
 	cases := []string{
-		")(",                   // invalid expression
-		"SomeFunc",             // unsupported id
-		"Remainder(banana)",    // unsupported argument
-		"Remainder(1, 2)",      // unsupported arguments count
-		"Remainder(Len)",       // unsupported argument
-		`Remainder(Len("Ho"))`, // unsupported argument
-		"Bla(1)",               // unknown method call
-		"0.2 && Remainder(1)",  // unsupported value
-		`Len("Ho") && 0.2`,     // unsupported value
-		"func(){}()",           // function call
-		"Remainder(3) >= 3",    // unsupported operator
+		")(",                      // invalid expression
+		"SomeFunc",                // unsupported id
+		"Remainder(banana)",       // unsupported argument
+		"Remainder(1, 2)",         // unsupported arguments count
+		"Remainder(Len)",          // unsupported argument
+		`Remainder(Len("Ho"))`,    // unsupported argument
+		"Bla(1)",                  // unknown method call
+		"0.2 && Remainder(1)",     // unsupported value
+		`Len("Ho") && 0.2`,        // unsupported value
+		"func(){}()",              // function call
+		"Remainder(3) >= 3",       // unsupported operator
+		`Remainder(3) > "banana"`, // unsupported comparison type
 	}
 	p := s.getParser(c)
 	for _, expr := range cases {
@@ -212,7 +214,13 @@ func numberRemainder(divideBy int) numberMapper {
 	}
 }
 
-func numberGT(m numberMapper, value interface{}) numberPredicate {
+func numberGT(m numberMapper, value interface{}) (numberPredicate, error) {
+	switch value.(type) {
+	case int:
+	case float64:
+	default:
+		return nil, fmt.Errorf("GT: unsupported argument type: %T", value)
+	}
 	return func(v int) bool {
 		switch val := value.(type) {
 		case int:
@@ -222,7 +230,7 @@ func numberGT(m numberMapper, value interface{}) numberPredicate {
 		default:
 			return true
 		}
-	}
+	}, nil
 }
 
 func numberLT(m numberMapper, value int) numberPredicate {
