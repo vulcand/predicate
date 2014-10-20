@@ -58,6 +58,9 @@ type Operators struct {
 	LT interface{}
 	GT interface{}
 
+	LE interface{}
+	GE interface{}
+
 	OR  interface{}
 	AND interface{}
 }

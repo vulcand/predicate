@@ -85,8 +85,12 @@ func (p *predicateParser) getJoinFunction(op token.Token) (interface{}, error) {
 		fn = p.d.Operators.OR
 	case token.GTR:
 		fn = p.d.Operators.GT
+	case token.GEQ:
+		fn = p.d.Operators.GE
 	case token.LSS:
 		fn = p.d.Operators.LT
+	case token.LEQ:
+		fn = p.d.Operators.LE
 	case token.EQL:
 		fn = p.d.Operators.EQ
 	case token.NEQ:

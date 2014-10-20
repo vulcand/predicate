@@ -23,6 +23,8 @@ func (s *PredicateSuite) getParser(c *C) Parser {
 			LT:  numberLT,
 			EQ:  numberEQ,
 			NEQ: numberNEQ,
+			LE:  numberLE,
+			GE:  numberGE,
 		},
 		Functions: map[string]interface{}{
 			"DivisibleBy": divisibleBy,
@@ -84,6 +86,20 @@ func (s *PredicateSuite) TestGT(c *C) {
 	c.Assert(fn(5), Equals, true)
 }
 
+func (s *PredicateSuite) TestGTE(c *C) {
+	p := s.getParser(c)
+
+	pr, err := p.Parse("Remainder(3) >= 1")
+	c.Assert(err, IsNil)
+	c.Assert(pr, FitsTypeOf, divisibleBy(1))
+	fn := pr.(numberPredicate)
+	c.Assert(fn(1), Equals, true)
+	c.Assert(fn(2), Equals, true)
+	c.Assert(fn(3), Equals, false)
+	c.Assert(fn(4), Equals, true)
+	c.Assert(fn(5), Equals, true)
+}
+
 func (s *PredicateSuite) TestLT(c *C) {
 	p := s.getParser(c)
 
@@ -96,6 +112,20 @@ func (s *PredicateSuite) TestLT(c *C) {
 	c.Assert(fn(3), Equals, true)
 	c.Assert(fn(4), Equals, true)
 	c.Assert(fn(5), Equals, false)
+}
+
+func (s *PredicateSuite) TestLE(c *C) {
+	p := s.getParser(c)
+
+	pr, err := p.Parse("Remainder(3) <= 2")
+	c.Assert(err, IsNil)
+	c.Assert(pr, FitsTypeOf, divisibleBy(1))
+	fn := pr.(numberPredicate)
+	c.Assert(fn(1), Equals, true)
+	c.Assert(fn(2), Equals, true)
+	c.Assert(fn(3), Equals, true)
+	c.Assert(fn(4), Equals, true)
+	c.Assert(fn(5), Equals, true)
 }
 
 func (s *PredicateSuite) TestEQ(c *C) {
@@ -176,7 +206,7 @@ func (s *PredicateSuite) TestUnhappyCases(c *C) {
 		"0.2 && Remainder(1)",     // unsupported value
 		`Len("Ho") && 0.2`,        // unsupported value
 		"func(){}()",              // function call
-		"Remainder(3) >= 3",       // unsupported operator
+		"Remainder(3) >> 3",       // unsupported operator
 		`Remainder(3) > "banana"`, // unsupported comparison type
 	}
 	p := s.getParser(c)
@@ -230,6 +260,18 @@ func numberGT(m numberMapper, value interface{}) (numberPredicate, error) {
 		default:
 			return true
 		}
+	}, nil
+}
+
+func numberGE(m numberMapper, value int) (numberPredicate, error) {
+	return func(v int) bool {
+		return m(v) >= value
+	}, nil
+}
+
+func numberLE(m numberMapper, value int) (numberPredicate, error) {
+	return func(v int) bool {
+		return m(v) <= value
 	}, nil
 }
 
