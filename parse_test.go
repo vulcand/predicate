@@ -27,9 +27,10 @@ func (s *PredicateSuite) getParser(c *C) Parser {
 			GE:  numberGE,
 		},
 		Functions: map[string]interface{}{
-			"DivisibleBy": divisibleBy,
-			"Remainder":   numberRemainder,
-			"Len":         stringLength,
+			"DivisibleBy":        divisibleBy,
+			"Remainder":          numberRemainder,
+			"Len":                stringLength,
+			"number.DivisibleBy": divisibleBy,
 		},
 	})
 	c.Assert(err, IsNil)
@@ -41,6 +42,17 @@ func (s *PredicateSuite) TestSinglePredicate(c *C) {
 	p := s.getParser(c)
 
 	pr, err := p.Parse("DivisibleBy(2)")
+	c.Assert(err, IsNil)
+	c.Assert(pr, FitsTypeOf, divisibleBy(2))
+	fn := pr.(numberPredicate)
+	c.Assert(fn(2), Equals, true)
+	c.Assert(fn(3), Equals, false)
+}
+
+func (s *PredicateSuite) TestModulePredicate(c *C) {
+	p := s.getParser(c)
+
+	pr, err := p.Parse("number.DivisibleBy(2)")
 	c.Assert(err, IsNil)
 	c.Assert(pr, FitsTypeOf, divisibleBy(2))
 	fn := pr.(numberPredicate)
