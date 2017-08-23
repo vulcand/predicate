@@ -48,7 +48,15 @@ type Def struct {
 	Operators Operators
 	// Function matching is case sensitive, e.g. Len is different from len
 	Functions map[string]interface{}
+	// GetIdentifier if specified can return value of any identifier passed in
+	// in the form []string{"id", "field", "subfield"}
+	GetIdentifier GetIdentifierFn
 }
+
+// GetIdentifierFn function returns identifier based on selector
+// e.g. id.field.subfield will be passed as.
+// GetIdentifierFn([]string{"id", "field", "subfield"})
+type GetIdentifierFn func(selector []string) (interface{}, error)
 
 // Operators contain functions for equality and logical comparison.
 type Operators struct {
