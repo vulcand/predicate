@@ -14,7 +14,11 @@ type PredicateSuite struct {
 
 var _ = Suite(&PredicateSuite{})
 
-func (s *PredicateSuite) getParser(c *C) Parser {
+func (s *PredicateSuite) getParser(c *C, functions ...GetIdentifierFn) Parser {
+	var getID GetIdentifierFn
+	if len(functions) != 0 {
+		getID = functions[0]
+	}
 	p, err := NewParser(Def{
 		Operators: Operators{
 			AND: numberAND,
@@ -31,7 +35,9 @@ func (s *PredicateSuite) getParser(c *C) Parser {
 			"Remainder":          numberRemainder,
 			"Len":                stringLength,
 			"number.DivisibleBy": divisibleBy,
+			"Equals":             equals,
 		},
+		GetIdentifier: getID,
 	})
 	c.Assert(err, IsNil)
 	c.Assert(p, NotNil)
@@ -206,6 +212,53 @@ func (s *PredicateSuite) TestGTFloat64(c *C) {
 	c.Assert(fn(5), Equals, true)
 }
 
+func (s *PredicateSuite) TestIdentifier(c *C) {
+	getID := func(fields []string) (interface{}, error) {
+		c.Assert(fields, DeepEquals, []string{"first", "second", "third"})
+		return 2, nil
+	}
+	p := s.getParser(c, getID)
+
+	pr, err := p.Parse("DivisibleBy(first.second.third)")
+	c.Assert(err, IsNil)
+	c.Assert(pr, FitsTypeOf, divisibleBy(2))
+	fn := pr.(numberPredicate)
+	c.Assert(fn(2), Equals, true)
+	c.Assert(fn(3), Equals, false)
+}
+
+func (s *PredicateSuite) TestIdentifierAndFunction(c *C) {
+	getID := func(fields []string) (interface{}, error) {
+		switch fields[0] {
+		case "firstSlice":
+			return []string{"a"}, nil
+		case "secondSlice":
+			return []string{"b"}, nil
+		case "a":
+			return "a", nil
+		case "b":
+			return "b", nil
+		}
+		return nil, nil
+	}
+	p := s.getParser(c, getID)
+
+	pr, err := p.Parse("Equals(firstSlice, firstSlice)")
+	c.Assert(err, IsNil)
+	fn := pr.(boolPredicate)
+	c.Assert(fn(), Equals, true)
+
+	pr, err = p.Parse("Equals(a, a)")
+	c.Assert(err, IsNil)
+	fn = pr.(boolPredicate)
+	c.Assert(fn(), Equals, true)
+
+	pr, err = p.Parse("Equals(firstSlice, secondSlice)")
+	c.Assert(err, IsNil)
+	fn = pr.(boolPredicate)
+	c.Assert(fn(), Equals, false)
+}
+
 func (s *PredicateSuite) TestUnhappyCases(c *C) {
 	cases := []string{
 		")(",                      // invalid expression
@@ -231,6 +284,35 @@ func (s *PredicateSuite) TestUnhappyCases(c *C) {
 
 type numberPredicate func(v int) bool
 type numberMapper func(v int) int
+type boolPredicate func() bool
+
+// equals can compare complex objects, e.g. arrays of strings
+// and strings together
+func equals(a interface{}, b interface{}) boolPredicate {
+	return func() bool {
+		switch aval := a.(type) {
+		case string:
+			bval, ok := b.(string)
+			return ok && aval == bval
+		case []string:
+			bval, ok := b.([]string)
+			if !ok {
+				return false
+			}
+			if len(aval) != len(bval) {
+				return false
+			}
+			for i := range aval {
+				if aval[i] != bval[i] {
+					return false
+				}
+			}
+			return true
+		default:
+			return false
+		}
+	}
+}
 
 func divisibleBy(divisor int) numberPredicate {
 	return func(v int) bool {
