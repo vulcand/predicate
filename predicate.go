@@ -54,7 +54,8 @@ type Def struct {
 }
 
 // GetIdentifierFn function returns identifier based on selector
-// e.g. id.field.subfield will be passed as GetIdentifierFn([]
+// e.g. id.field.subfield will be passed as.
+// GetIdentifierFn([]string{"id", "field", "subfield"})
 type GetIdentifierFn func(selector []string) (interface{}, error)
 
 // Operators contain functions for equality and logical comparison.
