@@ -66,40 +66,65 @@ func (p *predicateParser) parseNode(node ast.Node) (interface{}, error) {
 func (p *predicateParser) evaluateArguments(nodes []ast.Expr) ([]interface{}, error) {
 	out := make([]interface{}, len(nodes))
 	for i, n := range nodes {
-		switch l := n.(type) {
-		case *ast.BasicLit:
-			val, err := literalToValue(l)
-			if err != nil {
-				return nil, err
-			}
-			out[i] = val
-		case *ast.SelectorExpr:
-			fields, err := evaluateSelector(l, []string{})
-			if err != nil {
-				return nil, trace.Wrap(err)
-			}
-			if p.d.GetIdentifier == nil {
-				return nil, trace.NotFound("%v is not defined", strings.Join(fields, "."))
-			}
-			val, err := p.d.GetIdentifier(fields)
-			if err != nil {
-				return nil, trace.Wrap(err)
-			}
-			out[i] = val
-		case *ast.Ident:
-			if p.d.GetIdentifier == nil {
-				return nil, trace.NotFound("%v is not defined", l.Name)
-			}
-			val, err := p.d.GetIdentifier([]string{l.Name})
-			if err != nil {
-				return nil, trace.Wrap(err)
-			}
-			out[i] = val
-		default:
-			return nil, trace.BadParameter("%T is not supported", n)
+		val, err := p.evaluateExpr(n)
+		if err != nil {
+			return nil, trace.Wrap(err)
 		}
+		out[i] = val
 	}
 	return out, nil
+}
+
+func (p *predicateParser) evaluateExpr(n ast.Expr) (interface{}, error) {
+	switch l := n.(type) {
+	case *ast.BasicLit:
+		val, err := literalToValue(l)
+		if err != nil {
+			return nil, err
+		}
+		return val, nil
+	case *ast.IndexExpr:
+		if p.d.GetProperty == nil {
+			return nil, trace.NotFound("properties are not supported")
+		}
+		mapVal, err := p.evaluateExpr(l.X)
+		if err != nil {
+			return nil, trace.Wrap(err)
+		}
+		keyVal, err := p.evaluateExpr(l.Index)
+		if err != nil {
+			return nil, trace.Wrap(err)
+		}
+		val, err := p.d.GetProperty(mapVal, keyVal)
+		if err != nil {
+			return nil, trace.Wrap(err)
+		}
+		return val, nil
+	case *ast.SelectorExpr:
+		fields, err := evaluateSelector(l, []string{})
+		if err != nil {
+			return nil, trace.Wrap(err)
+		}
+		if p.d.GetIdentifier == nil {
+			return nil, trace.NotFound("%v is not defined", strings.Join(fields, "."))
+		}
+		val, err := p.d.GetIdentifier(fields)
+		if err != nil {
+			return nil, trace.Wrap(err)
+		}
+		return val, nil
+	case *ast.Ident:
+		if p.d.GetIdentifier == nil {
+			return nil, trace.NotFound("%v is not defined", l.Name)
+		}
+		val, err := p.d.GetIdentifier([]string{l.Name})
+		if err != nil {
+			return nil, trace.Wrap(err)
+		}
+		return val, nil
+	default:
+		return nil, trace.BadParameter("%T is not supported", n)
+	}
 }
 
 // evaluateSelector recursively evaluates the selector field and returns a list

@@ -227,6 +227,21 @@ func (s *PredicateSuite) TestIdentifier(c *C) {
 	c.Assert(fn(3), Equals, false)
 }
 
+func (s *PredicateSuite) TestMap(c *C) {
+	getID := func(fields []string) (interface{}, error) {
+		c.Assert(fields, DeepEquals, []string{"first", "second", "third"})
+		return 2, nil
+	}
+	p := s.getParser(c, getID)
+
+	pr, err := p.Parse(`DivisibleBy(first.second["key"])`)
+	c.Assert(err, IsNil)
+	c.Assert(pr, FitsTypeOf, divisibleBy(2))
+	fn := pr.(numberPredicate)
+	c.Assert(fn(2), Equals, true)
+	c.Assert(fn(3), Equals, false)
+}
+
 func (s *PredicateSuite) TestIdentifierAndFunction(c *C) {
 	getID := func(fields []string) (interface{}, error) {
 		switch fields[0] {
