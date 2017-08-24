@@ -14,11 +14,11 @@ type PredicateSuite struct {
 
 var _ = Suite(&PredicateSuite{})
 
-func (s *PredicateSuite) getParser(c *C, functions ...GetIdentifierFn) Parser {
-	var getID GetIdentifierFn
-	if len(functions) != 0 {
-		getID = functions[0]
-	}
+func (s *PredicateSuite) getParser(c *C) Parser {
+	return s.getParserWithOpts(c, nil, nil)
+}
+
+func (s *PredicateSuite) getParserWithOpts(c *C, getID GetIdentifierFn, getProperty GetPropertyFn) Parser {
 	p, err := NewParser(Def{
 		Operators: Operators{
 			AND: numberAND,
@@ -38,6 +38,7 @@ func (s *PredicateSuite) getParser(c *C, functions ...GetIdentifierFn) Parser {
 			"Equals":             equals,
 		},
 		GetIdentifier: getID,
+		GetProperty:   getProperty,
 	})
 	c.Assert(err, IsNil)
 	c.Assert(p, NotNil)
@@ -217,9 +218,30 @@ func (s *PredicateSuite) TestIdentifier(c *C) {
 		c.Assert(fields, DeepEquals, []string{"first", "second", "third"})
 		return 2, nil
 	}
-	p := s.getParser(c, getID)
+	p := s.getParserWithOpts(c, getID, nil)
 
 	pr, err := p.Parse("DivisibleBy(first.second.third)")
+	c.Assert(err, IsNil)
+	c.Assert(pr, FitsTypeOf, divisibleBy(2))
+	fn := pr.(numberPredicate)
+	c.Assert(fn(2), Equals, true)
+	c.Assert(fn(3), Equals, false)
+}
+
+func (s *PredicateSuite) TestMap(c *C) {
+	getID := func(fields []string) (interface{}, error) {
+		c.Assert(fields, DeepEquals, []string{"first", "second"})
+		return map[string]int{"key": 2}, nil
+	}
+	getProperty := func(mapVal, keyVal interface{}) (interface{}, error) {
+		m := mapVal.(map[string]int)
+		k := keyVal.(string)
+		return m[k], nil
+	}
+
+	p := s.getParserWithOpts(c, getID, getProperty)
+
+	pr, err := p.Parse(`DivisibleBy(first.second["key"])`)
 	c.Assert(err, IsNil)
 	c.Assert(pr, FitsTypeOf, divisibleBy(2))
 	fn := pr.(numberPredicate)
@@ -241,7 +263,7 @@ func (s *PredicateSuite) TestIdentifierAndFunction(c *C) {
 		}
 		return nil, nil
 	}
-	p := s.getParser(c, getID)
+	p := s.getParserWithOpts(c, getID, nil)
 
 	pr, err := p.Parse("Equals(firstSlice, firstSlice)")
 	c.Assert(err, IsNil)
