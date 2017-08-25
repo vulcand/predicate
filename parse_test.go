@@ -4,21 +4,22 @@ import (
 	"fmt"
 	"testing"
 
-	. "gopkg.in/check.v1"
+	"github.com/gravitational/trace"
+	"gopkg.in/check.v1"
 )
 
-func Test(t *testing.T) { TestingT(t) }
+func Test(t *testing.T) { check.TestingT(t) }
 
 type PredicateSuite struct {
 }
 
-var _ = Suite(&PredicateSuite{})
+var _ = check.Suite(&PredicateSuite{})
 
-func (s *PredicateSuite) getParser(c *C) Parser {
+func (s *PredicateSuite) getParser(c *check.C) Parser {
 	return s.getParserWithOpts(c, nil, nil)
 }
 
-func (s *PredicateSuite) getParserWithOpts(c *C, getID GetIdentifierFn, getProperty GetPropertyFn) Parser {
+func (s *PredicateSuite) getParserWithOpts(c *check.C, getID GetIdentifierFn, getProperty GetPropertyFn) Parser {
 	p, err := NewParser(Def{
 		Operators: Operators{
 			AND: numberAND,
@@ -35,202 +36,203 @@ func (s *PredicateSuite) getParserWithOpts(c *C, getID GetIdentifierFn, getPrope
 			"Remainder":          numberRemainder,
 			"Len":                stringLength,
 			"number.DivisibleBy": divisibleBy,
-			"Equals":             equals,
+			"Equals":             Equals,
+			"Contains":           Contains,
 		},
 		GetIdentifier: getID,
 		GetProperty:   getProperty,
 	})
-	c.Assert(err, IsNil)
-	c.Assert(p, NotNil)
+	c.Assert(err, check.IsNil)
+	c.Assert(p, check.NotNil)
 	return p
 }
 
-func (s *PredicateSuite) TestSinglePredicate(c *C) {
+func (s *PredicateSuite) TestSinglePredicate(c *check.C) {
 	p := s.getParser(c)
 
 	pr, err := p.Parse("DivisibleBy(2)")
-	c.Assert(err, IsNil)
-	c.Assert(pr, FitsTypeOf, divisibleBy(2))
+	c.Assert(err, check.IsNil)
+	c.Assert(pr, check.FitsTypeOf, divisibleBy(2))
 	fn := pr.(numberPredicate)
-	c.Assert(fn(2), Equals, true)
-	c.Assert(fn(3), Equals, false)
+	c.Assert(fn(2), check.Equals, true)
+	c.Assert(fn(3), check.Equals, false)
 }
 
-func (s *PredicateSuite) TestModulePredicate(c *C) {
+func (s *PredicateSuite) TestModulePredicate(c *check.C) {
 	p := s.getParser(c)
 
 	pr, err := p.Parse("number.DivisibleBy(2)")
-	c.Assert(err, IsNil)
-	c.Assert(pr, FitsTypeOf, divisibleBy(2))
+	c.Assert(err, check.IsNil)
+	c.Assert(pr, check.FitsTypeOf, divisibleBy(2))
 	fn := pr.(numberPredicate)
-	c.Assert(fn(2), Equals, true)
-	c.Assert(fn(3), Equals, false)
+	c.Assert(fn(2), check.Equals, true)
+	c.Assert(fn(3), check.Equals, false)
 }
 
-func (s *PredicateSuite) TestJoinAND(c *C) {
+func (s *PredicateSuite) TestJoinAND(c *check.C) {
 	p := s.getParser(c)
 
 	pr, err := p.Parse("DivisibleBy(2) && DivisibleBy(3)")
-	c.Assert(err, IsNil)
-	c.Assert(pr, FitsTypeOf, divisibleBy(1))
+	c.Assert(err, check.IsNil)
+	c.Assert(pr, check.FitsTypeOf, divisibleBy(1))
 	fn := pr.(numberPredicate)
-	c.Assert(fn(2), Equals, false)
-	c.Assert(fn(3), Equals, false)
-	c.Assert(fn(6), Equals, true)
+	c.Assert(fn(2), check.Equals, false)
+	c.Assert(fn(3), check.Equals, false)
+	c.Assert(fn(6), check.Equals, true)
 }
 
-func (s *PredicateSuite) TestJoinOR(c *C) {
+func (s *PredicateSuite) TestJoinOR(c *check.C) {
 	p := s.getParser(c)
 
 	pr, err := p.Parse("DivisibleBy(2) || DivisibleBy(3)")
-	c.Assert(err, IsNil)
-	c.Assert(pr, FitsTypeOf, divisibleBy(1))
+	c.Assert(err, check.IsNil)
+	c.Assert(pr, check.FitsTypeOf, divisibleBy(1))
 	fn := pr.(numberPredicate)
-	c.Assert(fn(2), Equals, true)
-	c.Assert(fn(3), Equals, true)
-	c.Assert(fn(5), Equals, false)
+	c.Assert(fn(2), check.Equals, true)
+	c.Assert(fn(3), check.Equals, true)
+	c.Assert(fn(5), check.Equals, false)
 }
 
-func (s *PredicateSuite) TestGT(c *C) {
+func (s *PredicateSuite) TestGT(c *check.C) {
 	p := s.getParser(c)
 
 	pr, err := p.Parse("Remainder(3) > 1")
-	c.Assert(err, IsNil)
-	c.Assert(pr, FitsTypeOf, divisibleBy(1))
+	c.Assert(err, check.IsNil)
+	c.Assert(pr, check.FitsTypeOf, divisibleBy(1))
 	fn := pr.(numberPredicate)
-	c.Assert(fn(1), Equals, false)
-	c.Assert(fn(2), Equals, true)
-	c.Assert(fn(3), Equals, false)
-	c.Assert(fn(4), Equals, false)
-	c.Assert(fn(5), Equals, true)
+	c.Assert(fn(1), check.Equals, false)
+	c.Assert(fn(2), check.Equals, true)
+	c.Assert(fn(3), check.Equals, false)
+	c.Assert(fn(4), check.Equals, false)
+	c.Assert(fn(5), check.Equals, true)
 }
 
-func (s *PredicateSuite) TestGTE(c *C) {
+func (s *PredicateSuite) TestGTE(c *check.C) {
 	p := s.getParser(c)
 
 	pr, err := p.Parse("Remainder(3) >= 1")
-	c.Assert(err, IsNil)
-	c.Assert(pr, FitsTypeOf, divisibleBy(1))
+	c.Assert(err, check.IsNil)
+	c.Assert(pr, check.FitsTypeOf, divisibleBy(1))
 	fn := pr.(numberPredicate)
-	c.Assert(fn(1), Equals, true)
-	c.Assert(fn(2), Equals, true)
-	c.Assert(fn(3), Equals, false)
-	c.Assert(fn(4), Equals, true)
-	c.Assert(fn(5), Equals, true)
+	c.Assert(fn(1), check.Equals, true)
+	c.Assert(fn(2), check.Equals, true)
+	c.Assert(fn(3), check.Equals, false)
+	c.Assert(fn(4), check.Equals, true)
+	c.Assert(fn(5), check.Equals, true)
 }
 
-func (s *PredicateSuite) TestLT(c *C) {
+func (s *PredicateSuite) TestLT(c *check.C) {
 	p := s.getParser(c)
 
 	pr, err := p.Parse("Remainder(3) < 2")
-	c.Assert(err, IsNil)
-	c.Assert(pr, FitsTypeOf, divisibleBy(1))
+	c.Assert(err, check.IsNil)
+	c.Assert(pr, check.FitsTypeOf, divisibleBy(1))
 	fn := pr.(numberPredicate)
-	c.Assert(fn(1), Equals, true)
-	c.Assert(fn(2), Equals, false)
-	c.Assert(fn(3), Equals, true)
-	c.Assert(fn(4), Equals, true)
-	c.Assert(fn(5), Equals, false)
+	c.Assert(fn(1), check.Equals, true)
+	c.Assert(fn(2), check.Equals, false)
+	c.Assert(fn(3), check.Equals, true)
+	c.Assert(fn(4), check.Equals, true)
+	c.Assert(fn(5), check.Equals, false)
 }
 
-func (s *PredicateSuite) TestLE(c *C) {
+func (s *PredicateSuite) TestLE(c *check.C) {
 	p := s.getParser(c)
 
 	pr, err := p.Parse("Remainder(3) <= 2")
-	c.Assert(err, IsNil)
-	c.Assert(pr, FitsTypeOf, divisibleBy(1))
+	c.Assert(err, check.IsNil)
+	c.Assert(pr, check.FitsTypeOf, divisibleBy(1))
 	fn := pr.(numberPredicate)
-	c.Assert(fn(1), Equals, true)
-	c.Assert(fn(2), Equals, true)
-	c.Assert(fn(3), Equals, true)
-	c.Assert(fn(4), Equals, true)
-	c.Assert(fn(5), Equals, true)
+	c.Assert(fn(1), check.Equals, true)
+	c.Assert(fn(2), check.Equals, true)
+	c.Assert(fn(3), check.Equals, true)
+	c.Assert(fn(4), check.Equals, true)
+	c.Assert(fn(5), check.Equals, true)
 }
 
-func (s *PredicateSuite) TestEQ(c *C) {
+func (s *PredicateSuite) TestEQ(c *check.C) {
 	p := s.getParser(c)
 
 	pr, err := p.Parse("Remainder(3) == 2")
-	c.Assert(err, IsNil)
-	c.Assert(pr, FitsTypeOf, divisibleBy(1))
+	c.Assert(err, check.IsNil)
+	c.Assert(pr, check.FitsTypeOf, divisibleBy(1))
 	fn := pr.(numberPredicate)
-	c.Assert(fn(1), Equals, false)
-	c.Assert(fn(2), Equals, true)
-	c.Assert(fn(3), Equals, false)
-	c.Assert(fn(4), Equals, false)
-	c.Assert(fn(5), Equals, true)
+	c.Assert(fn(1), check.Equals, false)
+	c.Assert(fn(2), check.Equals, true)
+	c.Assert(fn(3), check.Equals, false)
+	c.Assert(fn(4), check.Equals, false)
+	c.Assert(fn(5), check.Equals, true)
 }
 
-func (s *PredicateSuite) TestNEQ(c *C) {
+func (s *PredicateSuite) TestNEQ(c *check.C) {
 	p := s.getParser(c)
 
 	pr, err := p.Parse("Remainder(3) != 2")
-	c.Assert(err, IsNil)
-	c.Assert(pr, FitsTypeOf, divisibleBy(1))
+	c.Assert(err, check.IsNil)
+	c.Assert(pr, check.FitsTypeOf, divisibleBy(1))
 	fn := pr.(numberPredicate)
-	c.Assert(fn(1), Equals, true)
-	c.Assert(fn(2), Equals, false)
-	c.Assert(fn(3), Equals, true)
-	c.Assert(fn(4), Equals, true)
-	c.Assert(fn(5), Equals, false)
+	c.Assert(fn(1), check.Equals, true)
+	c.Assert(fn(2), check.Equals, false)
+	c.Assert(fn(3), check.Equals, true)
+	c.Assert(fn(4), check.Equals, true)
+	c.Assert(fn(5), check.Equals, false)
 }
 
-func (s *PredicateSuite) TestParen(c *C) {
+func (s *PredicateSuite) TestParen(c *check.C) {
 	p := s.getParser(c)
 
 	pr, err := p.Parse("(Remainder(3) != 1) && (Remainder(3) != 0)")
-	c.Assert(err, IsNil)
-	c.Assert(pr, FitsTypeOf, divisibleBy(1))
+	c.Assert(err, check.IsNil)
+	c.Assert(pr, check.FitsTypeOf, divisibleBy(1))
 	fn := pr.(numberPredicate)
-	c.Assert(fn(0), Equals, false)
-	c.Assert(fn(1), Equals, false)
-	c.Assert(fn(2), Equals, true)
+	c.Assert(fn(0), check.Equals, false)
+	c.Assert(fn(1), check.Equals, false)
+	c.Assert(fn(2), check.Equals, true)
 }
 
-func (s *PredicateSuite) TestStrings(c *C) {
+func (s *PredicateSuite) TestStrings(c *check.C) {
 	p := s.getParser(c)
 
 	pr, err := p.Parse(`Remainder(3) == Len("hi")`)
-	c.Assert(err, IsNil)
-	c.Assert(pr, FitsTypeOf, divisibleBy(1))
+	c.Assert(err, check.IsNil)
+	c.Assert(pr, check.FitsTypeOf, divisibleBy(1))
 	fn := pr.(numberPredicate)
-	c.Assert(fn(0), Equals, false)
-	c.Assert(fn(1), Equals, false)
-	c.Assert(fn(2), Equals, true)
+	c.Assert(fn(0), check.Equals, false)
+	c.Assert(fn(1), check.Equals, false)
+	c.Assert(fn(2), check.Equals, true)
 }
 
-func (s *PredicateSuite) TestGTFloat64(c *C) {
+func (s *PredicateSuite) TestGTFloat64(c *check.C) {
 	p := s.getParser(c)
 
 	pr, err := p.Parse("Remainder(3) > 1.2")
-	c.Assert(err, IsNil)
-	c.Assert(pr, FitsTypeOf, divisibleBy(1))
+	c.Assert(err, check.IsNil)
+	c.Assert(pr, check.FitsTypeOf, divisibleBy(1))
 	fn := pr.(numberPredicate)
-	c.Assert(fn(1), Equals, false)
-	c.Assert(fn(2), Equals, true)
-	c.Assert(fn(3), Equals, false)
-	c.Assert(fn(4), Equals, false)
-	c.Assert(fn(5), Equals, true)
+	c.Assert(fn(1), check.Equals, false)
+	c.Assert(fn(2), check.Equals, true)
+	c.Assert(fn(3), check.Equals, false)
+	c.Assert(fn(4), check.Equals, false)
+	c.Assert(fn(5), check.Equals, true)
 }
 
-func (s *PredicateSuite) TestIdentifier(c *C) {
+func (s *PredicateSuite) TestIdentifier(c *check.C) {
 	getID := func(fields []string) (interface{}, error) {
-		c.Assert(fields, DeepEquals, []string{"first", "second", "third"})
+		c.Assert(fields, check.DeepEquals, []string{"first", "second", "third"})
 		return 2, nil
 	}
 	p := s.getParserWithOpts(c, getID, nil)
 
 	pr, err := p.Parse("DivisibleBy(first.second.third)")
-	c.Assert(err, IsNil)
-	c.Assert(pr, FitsTypeOf, divisibleBy(2))
+	c.Assert(err, check.IsNil)
+	c.Assert(pr, check.FitsTypeOf, divisibleBy(2))
 	fn := pr.(numberPredicate)
-	c.Assert(fn(2), Equals, true)
-	c.Assert(fn(3), Equals, false)
+	c.Assert(fn(2), check.Equals, true)
+	c.Assert(fn(3), check.Equals, false)
 }
 
-func (s *PredicateSuite) TestMap(c *C) {
+func (s *PredicateSuite) TestMap(c *check.C) {
 	getID := func(fields []string) (interface{}, error) {
-		c.Assert(fields, DeepEquals, []string{"first", "second"})
+		c.Assert(fields, check.DeepEquals, []string{"first", "second"})
 		return map[string]int{"key": 2}, nil
 	}
 	getProperty := func(mapVal, keyVal interface{}) (interface{}, error) {
@@ -242,14 +244,14 @@ func (s *PredicateSuite) TestMap(c *C) {
 	p := s.getParserWithOpts(c, getID, getProperty)
 
 	pr, err := p.Parse(`DivisibleBy(first.second["key"])`)
-	c.Assert(err, IsNil)
-	c.Assert(pr, FitsTypeOf, divisibleBy(2))
+	c.Assert(err, check.IsNil)
+	c.Assert(pr, check.FitsTypeOf, divisibleBy(2))
 	fn := pr.(numberPredicate)
-	c.Assert(fn(2), Equals, true)
-	c.Assert(fn(3), Equals, false)
+	c.Assert(fn(2), check.Equals, true)
+	c.Assert(fn(3), check.Equals, false)
 }
 
-func (s *PredicateSuite) TestIdentifierAndFunction(c *C) {
+func (s *PredicateSuite) TestIdentifierAndFunction(c *check.C) {
 	getID := func(fields []string) (interface{}, error) {
 		switch fields[0] {
 		case "firstSlice":
@@ -266,22 +268,112 @@ func (s *PredicateSuite) TestIdentifierAndFunction(c *C) {
 	p := s.getParserWithOpts(c, getID, nil)
 
 	pr, err := p.Parse("Equals(firstSlice, firstSlice)")
-	c.Assert(err, IsNil)
-	fn := pr.(boolPredicate)
-	c.Assert(fn(), Equals, true)
+	c.Assert(err, check.IsNil)
+	fn := pr.(BoolPredicate)
+	c.Assert(fn(), check.Equals, true)
 
 	pr, err = p.Parse("Equals(a, a)")
-	c.Assert(err, IsNil)
-	fn = pr.(boolPredicate)
-	c.Assert(fn(), Equals, true)
+	c.Assert(err, check.IsNil)
+	fn = pr.(BoolPredicate)
+	c.Assert(fn(), check.Equals, true)
 
 	pr, err = p.Parse("Equals(firstSlice, secondSlice)")
-	c.Assert(err, IsNil)
-	fn = pr.(boolPredicate)
-	c.Assert(fn(), Equals, false)
+	c.Assert(err, check.IsNil)
+	fn = pr.(BoolPredicate)
+	c.Assert(fn(), check.Equals, false)
 }
 
-func (s *PredicateSuite) TestUnhappyCases(c *C) {
+func (s *PredicateSuite) TestContains(c *check.C) {
+	val := TestStruct{}
+	val.Param.Key1 = map[string][]string{"key": []string{"a", "b", "c"}}
+
+	getID := func(fields []string) (interface{}, error) {
+		return GetFieldByTag(val, "json", fields[1:])
+	}
+	p := s.getParserWithOpts(c, getID, GetStringMapValue)
+
+	pr, err := p.Parse(`Contains(val.param.key1["key"], "a")`)
+	c.Assert(err, check.IsNil)
+	c.Assert(pr.(BoolPredicate)(), check.Equals, true)
+
+	pr, err = p.Parse(`Contains(val.param.key1["key"], "z")`)
+	c.Assert(err, check.IsNil)
+	c.Assert(pr.(BoolPredicate)(), check.Equals, false)
+
+	pr, err = p.Parse(`Contains(val.param.key1["missing"], "a")`)
+	c.Assert(err, check.IsNil)
+	c.Assert(pr.(BoolPredicate)(), check.Equals, false)
+}
+
+func (s *PredicateSuite) TestEquals(c *check.C) {
+	val := TestStruct{}
+	val.Param.Key2 = map[string]string{"key": "a"}
+
+	getID := func(fields []string) (interface{}, error) {
+		return GetFieldByTag(val, "json", fields[1:])
+	}
+	p := s.getParserWithOpts(c, getID, GetStringMapValue)
+
+	pr, err := p.Parse(`Equals(val.param.key2["key"], "a")`)
+	c.Assert(err, check.IsNil)
+	c.Assert(pr.(BoolPredicate)(), check.Equals, true)
+
+	pr, err = p.Parse(`Equals(val.param.key2["key"], "b")`)
+	c.Assert(err, check.IsNil)
+	c.Assert(pr.(BoolPredicate)(), check.Equals, false)
+
+	pr, err = p.Parse(`Contains(val.param.key2["missing"], "z")`)
+	c.Assert(err, check.IsNil)
+	c.Assert(pr.(BoolPredicate)(), check.Equals, false)
+
+	pr, err = p.Parse(`Contains(val.param.key1["missing"], "z")`)
+	c.Assert(err, check.IsNil)
+	c.Assert(pr.(BoolPredicate)(), check.Equals, false)
+}
+
+// TestStruct is a test sturcture with json tags
+type TestStruct struct {
+	Param struct {
+		Key1 map[string][]string `json:"key1,omitempty"`
+		Key2 map[string]string   `json:"key2,omitempty"`
+	} `json:"param,omitempty"`
+}
+
+func (s *PredicateSuite) TestGetTagField(c *check.C) {
+	val := TestStruct{}
+	val.Param.Key1 = map[string][]string{"key": []string{"val"}}
+
+	type testCase struct {
+		tag    string
+		fields []string
+		val    interface{}
+		expect interface{}
+		err    error
+	}
+	testCases := []testCase{
+		// nested field
+		{tag: "json", val: val, fields: []string{"param", "key1"}, expect: val.Param.Key1},
+		// pointer to struct
+		{tag: "json", val: &val, fields: []string{"param", "key1"}, expect: val.Param.Key1},
+		// not found field
+		{tag: "json", val: &val, fields: []string{"param", "key3"}, err: trace.NotFound("not found")},
+		// nil pointer
+		{tag: "json", val: nil, fields: []string{"param", "key1"}, err: trace.BadParameter("bad param")},
+	}
+
+	for i, tc := range testCases {
+		comment := check.Commentf("test case %v", i)
+		out, err := GetFieldByTag(tc.val, tc.tag, tc.fields)
+		if tc.err != nil {
+			c.Assert(err, check.FitsTypeOf, tc.err, comment)
+		} else {
+			c.Assert(err, check.IsNil, comment)
+			c.Assert(out, check.DeepEquals, tc.expect, comment)
+		}
+	}
+}
+
+func (s *PredicateSuite) TestUnhappyCases(c *check.C) {
 	cases := []string{
 		")(",                      // invalid expression
 		"SomeFunc",                // unsupported id
@@ -299,42 +391,13 @@ func (s *PredicateSuite) TestUnhappyCases(c *C) {
 	p := s.getParser(c)
 	for _, expr := range cases {
 		pr, err := p.Parse(expr)
-		c.Assert(err, NotNil)
-		c.Assert(pr, IsNil)
+		c.Assert(err, check.NotNil)
+		c.Assert(pr, check.IsNil)
 	}
 }
 
 type numberPredicate func(v int) bool
 type numberMapper func(v int) int
-type boolPredicate func() bool
-
-// equals can compare complex objects, e.g. arrays of strings
-// and strings together
-func equals(a interface{}, b interface{}) boolPredicate {
-	return func() bool {
-		switch aval := a.(type) {
-		case string:
-			bval, ok := b.(string)
-			return ok && aval == bval
-		case []string:
-			bval, ok := b.([]string)
-			if !ok {
-				return false
-			}
-			if len(aval) != len(bval) {
-				return false
-			}
-			for i := range aval {
-				if aval[i] != bval[i] {
-					return false
-				}
-			}
-			return true
-		default:
-			return false
-		}
-	}
-}
 
 func divisibleBy(divisor int) numberPredicate {
 	return func(v int) bool {
