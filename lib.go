@@ -30,11 +30,12 @@ import (
 func GetStringMapValue(mapVal, keyVal interface{}) (interface{}, error) {
 	key, ok := keyVal.(string)
 	if !ok {
-		return nil, trace.BadParameter("")
+		return nil, trace.BadParameter("only string keys are supported")
 	}
 	switch m := mapVal.(type) {
 	case map[string][]string:
 		if len(m) == 0 {
+			// to return nil with a proper type
 			var n []string
 			return n, nil
 		}
