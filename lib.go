@@ -25,7 +25,7 @@ import (
 
 // GetStringMapValue is a helper function that returns property
 // from map[string]string or map[string][]string
-// GetMapValure returns empty value in case if key not found
+// the function returns empty value in case if key not found
 // In case if map is nil, returns empty value as well
 func GetStringMapValue(mapVal, keyVal interface{}) (interface{}, error) {
 	key, ok := keyVal.(string)
