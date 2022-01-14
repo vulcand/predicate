@@ -16,7 +16,7 @@ limitations under the License.
 */
 
 /*
-Predicate package used to create interpreted mini languages with Go syntax - mostly to define
+Package predicate used to create interpreted mini languages with Go syntax - mostly to define
 various predicates for configuration, e.g. Latency() > 40 || ErrorRate() > 0.5.
 
 Here's an example of fully functional predicate language to deal with division remainders:
@@ -74,10 +74,10 @@ type Def struct {
 
 // GetIdentifierFn function returns identifier based on selector
 // e.g. id.field.subfield will be passed as.
-// GetIdentifierFn([]string{"id", "field", "subfield"})
+// GetIdentifierFn([]string{"id", "field", "subfield"}).
 type GetIdentifierFn func(selector []string) (interface{}, error)
 
-// GetPropertyFn reuturns property from a mapVal by key keyVal
+// GetPropertyFn returns property from a mapVal by key keyVal.
 type GetPropertyFn func(mapVal, keyVal interface{}) (interface{}, error)
 
 // Operators contain functions for equality and logical comparison.

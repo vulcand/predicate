@@ -26,7 +26,7 @@ import (
 // GetStringMapValue is a helper function that returns property
 // from map[string]string or map[string][]string
 // the function returns empty value in case if key not found
-// In case if map is nil, returns empty value as well
+// In case if map is nil, returns empty value as well.
 func GetStringMapValue(mapVal, keyVal interface{}) (interface{}, error) {
 	key, ok := keyVal.(string)
 	if !ok {
@@ -51,11 +51,11 @@ func GetStringMapValue(mapVal, keyVal interface{}) (interface{}, error) {
 }
 
 // BoolPredicate is a function without arguments that returns
-// boolean value when called
+// boolean value when called.
 type BoolPredicate func() bool
 
 // Equals can compare complex objects, e.g. arrays of strings
-// and strings together
+// and strings together.
 func Equals(a interface{}, b interface{}) BoolPredicate {
 	return func() bool {
 		switch aval := a.(type) {
@@ -83,7 +83,7 @@ func Equals(a interface{}, b interface{}) BoolPredicate {
 }
 
 // Contains checks if string slice contains a string
-// Contains([]string{"a", "b"}, "b") -> true
+// Contains([]string{"a", "b"}, "b") -> true.
 func Contains(a interface{}, b interface{}) BoolPredicate {
 	return func() bool {
 		aval, ok := a.([]string)
@@ -104,7 +104,7 @@ func Contains(a interface{}, b interface{}) BoolPredicate {
 }
 
 // And is a boolean predicate that calls two boolean predicates
-// and returns result of && operation on their return values
+// and returns result of && operation on their return values.
 func And(a, b BoolPredicate) BoolPredicate {
 	return func() bool {
 		return a() && b()
@@ -112,7 +112,7 @@ func And(a, b BoolPredicate) BoolPredicate {
 }
 
 // Or is a boolean predicate that calls two boolean predicates
-// and returns result of || operation on their return values
+// and returns result of || operation on their return values.
 func Or(a, b BoolPredicate) BoolPredicate {
 	return func() bool {
 		return a() || b()
@@ -120,22 +120,24 @@ func Or(a, b BoolPredicate) BoolPredicate {
 }
 
 // Not is a boolean predicate that calls a boolean predicate
-// and returns negated result
+// and returns negated result.
 func Not(a BoolPredicate) BoolPredicate {
 	return func() bool {
 		return !a()
 	}
 }
 
-// GetFieldByTag returns a field from the object based on the tag
+// GetFieldByTag returns a field from the object based on the tag.
 func GetFieldByTag(ival interface{}, tagName string, fieldNames []string) (interface{}, error) {
 	if len(fieldNames) == 0 {
 		return nil, trace.BadParameter("missing field names")
 	}
+
 	val := reflect.ValueOf(ival)
 	if val.Kind() == reflect.Interface || val.Kind() == reflect.Ptr {
 		val = val.Elem()
 	}
+
 	if val.Kind() != reflect.Struct {
 		return nil, trace.NotFound("field name %v is not found", strings.Join(fieldNames, "."))
 	}
@@ -145,14 +147,17 @@ func GetFieldByTag(ival interface{}, tagName string, fieldNames []string) (inter
 	valType := val.Type()
 	for i := 0; i < valType.NumField(); i++ {
 		tagValue := valType.Field(i).Tag.Get(tagName)
+
 		parts := strings.Split(tagValue, ",")
 		if parts[0] == fieldName {
 			value := val.Field(i).Interface()
 			if len(rest) == 0 {
 				return value, nil
 			}
+
 			return GetFieldByTag(value, tagName, rest)
 		}
 	}
+
 	return nil, trace.NotFound("field name %v is not found", strings.Join(fieldNames, "."))
 }
