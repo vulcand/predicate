@@ -25,6 +25,7 @@ func (p *predicateParser) Parse(in string) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return p.parseNode(expr)
 }
 
@@ -32,44 +33,56 @@ func (p *predicateParser) parseNode(node ast.Node) (interface{}, error) {
 	switch n := node.(type) {
 	case *ast.BasicLit:
 		return literalToValue(n)
+
 	case *ast.BinaryExpr:
 		x, err := p.parseNode(n.X)
 		if err != nil {
 			return nil, err
 		}
+
 		y, err := p.parseNode(n.Y)
 		if err != nil {
 			return nil, err
 		}
+
 		return p.joinPredicates(n.Op, x, y)
+
 	case *ast.CallExpr:
 		// We expect function that will return predicate
 		name, err := getIdentifier(n.Fun)
 		if err != nil {
 			return nil, err
 		}
+
 		fn, err := p.getFunction(name)
 		if err != nil {
 			return nil, err
 		}
+
 		arguments, err := p.evaluateArguments(n.Args)
 		if err != nil {
 			return nil, err
 		}
+
 		return callFunction(fn, arguments)
+
 	case *ast.ParenExpr:
 		return p.parseNode(n.X)
+
 	case *ast.UnaryExpr:
 		joinFn, err := p.getJoinFunction(n.Op)
 		if err != nil {
 			return nil, err
 		}
+
 		node, err := p.parseNode(n.X)
 		if err != nil {
 			return nil, err
 		}
+
 		return callFunction(joinFn, []interface{}{node})
 	}
+
 	return nil, trace.BadParameter("unsupported %T", node)
 }
 
@@ -92,75 +105,93 @@ func (p *predicateParser) evaluateExpr(n ast.Expr) (interface{}, error) {
 		if err != nil {
 			return nil, err
 		}
+
 		return val, nil
+
 	case *ast.IndexExpr:
 		if p.d.GetProperty == nil {
 			return nil, trace.NotFound("properties are not supported")
 		}
+
 		mapVal, err := p.evaluateExpr(l.X)
 		if err != nil {
 			return nil, trace.Wrap(err)
 		}
+
 		keyVal, err := p.evaluateExpr(l.Index)
 		if err != nil {
 			return nil, trace.Wrap(err)
 		}
+
 		val, err := p.d.GetProperty(mapVal, keyVal)
 		if err != nil {
 			return nil, trace.Wrap(err)
 		}
+
 		return val, nil
+
 	case *ast.SelectorExpr:
 		fields, err := evaluateSelector(l, []string{})
 		if err != nil {
 			return nil, trace.Wrap(err)
 		}
+
 		if p.d.GetIdentifier == nil {
 			return nil, trace.NotFound("%v is not defined", strings.Join(fields, "."))
 		}
+
 		val, err := p.d.GetIdentifier(fields)
 		if err != nil {
 			return nil, trace.Wrap(err)
 		}
 		return val, nil
+
 	case *ast.Ident:
 		if p.d.GetIdentifier == nil {
 			return nil, trace.NotFound("%v is not defined", l.Name)
 		}
+
 		val, err := p.d.GetIdentifier([]string{l.Name})
 		if err != nil {
 			return nil, trace.Wrap(err)
 		}
 		return val, nil
+
 	case *ast.CallExpr:
 		name, err := getIdentifier(l.Fun)
 		if err != nil {
 			return nil, err
 		}
+
 		fn, err := p.getFunction(name)
 		if err != nil {
 			return nil, err
 		}
+
 		arguments, err := p.evaluateArguments(l.Args)
 		if err != nil {
 			return nil, err
 		}
+
 		return callFunction(fn, arguments)
+
 	default:
 		return nil, trace.BadParameter("%T is not supported", n)
 	}
 }
 
 // evaluateSelector recursively evaluates the selector field and returns a list
-// of properties at the end
+// of properties at the end.
 func evaluateSelector(sel *ast.SelectorExpr, fields []string) ([]string, error) {
 	fields = append([]string{sel.Sel.Name}, fields...)
 	switch l := sel.X.(type) {
 	case *ast.SelectorExpr:
 		return evaluateSelector(l, fields)
+
 	case *ast.Ident:
 		fields = append([]string{l.Name}, fields...)
 		return fields, nil
+
 	default:
 		return nil, trace.BadParameter("unsupported selector type: %T", l)
 	}
@@ -179,6 +210,7 @@ func (p *predicateParser) joinPredicates(op token.Token, a, b interface{}) (inte
 	if err != nil {
 		return nil, err
 	}
+
 	return callFunction(joinFn, []interface{}{a, b})
 }
 
@@ -213,8 +245,8 @@ func (p *predicateParser) getJoinFunction(op token.Token) (interface{}, error) {
 func getIdentifier(node ast.Node) (string, error) {
 	sexpr, ok := node.(*ast.SelectorExpr)
 	if ok {
-		id, ok := sexpr.X.(*ast.Ident)
-		if !ok {
+		id, okIdent := sexpr.X.(*ast.Ident)
+		if !okIdent {
 			return "", trace.BadParameter("expected selector identifier, got: %T", sexpr.X)
 		}
 		return fmt.Sprintf("%s.%s", id.Name, sexpr.Sel.Name), nil
@@ -235,12 +267,14 @@ func literalToValue(a *ast.BasicLit) (interface{}, error) {
 			return nil, trace.BadParameter("failed to parse argument: %s, error: %s", a.Value, err)
 		}
 		return value, nil
+
 	case token.INT:
 		value, err := strconv.Atoi(a.Value)
 		if err != nil {
 			return nil, trace.BadParameter("failed to parse argument: %s, error: %s", a.Value, err)
 		}
 		return value, nil
+
 	case token.STRING:
 		value, err := strconv.Unquote(a.Value)
 		if err != nil {
@@ -248,6 +282,7 @@ func literalToValue(a *ast.BasicLit) (interface{}, error) {
 		}
 		return value, nil
 	}
+
 	return nil, trace.BadParameter("unsupported function argument type: '%v'", a.Kind)
 }
 
@@ -257,16 +292,19 @@ func callFunction(f interface{}, args []interface{}) (v interface{}, err error) 
 			err = trace.BadParameter("%s", r)
 		}
 	}()
+
 	arguments := make([]reflect.Value, len(args))
 	for i, a := range args {
 		arguments[i] = reflect.ValueOf(a)
 	}
+
 	fn := reflect.ValueOf(f)
 
 	ret := fn.Call(arguments)
 	switch len(ret) {
 	case 1:
 		return ret[0].Interface(), nil
+
 	case 2:
 		v, e := ret[0].Interface(), ret[1].Interface()
 		if e == nil {
@@ -277,6 +315,8 @@ func callFunction(f interface{}, args []interface{}) (v interface{}, err error) 
 			return nil, trace.BadParameter("expected error as a second return value, got %T", e)
 		}
 		return v, err
+
+	default:
+		return nil, trace.BadParameter("expected at least one return argument for '%v'", fn)
 	}
-	return nil, trace.BadParameter("expected at least one return argument for '%v'", fn)
 }

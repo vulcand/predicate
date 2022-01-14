@@ -15,7 +15,7 @@ limitations under the License.
 
 */
 
-// package builder is used to construct predicate
+// Package builder is used to construct predicate
 // expressions using builder functions.
 package builder
 
@@ -25,39 +25,39 @@ import (
 )
 
 // Expr is an expression builder,
-// used to create expressions in rules definitions
+// used to create expressions in rules definitions.
 type Expr interface {
 	// String serializes expression into format parsed by rules engine
 	// (golang based syntax)
 	String() string
 }
 
-// IdentiferExpr is identifer expression
+// IdentifierExpr is identifier expression.
 type IdentifierExpr string
 
-// String serializes identifer expression into format parsed by rules engine
+// String serializes identifier expression into format parsed by rules engine.
 func (i IdentifierExpr) String() string {
 	return string(i)
 }
 
-// Identifer returns identifier expression
+// Identifier returns identifier expression.
 func Identifier(v string) IdentifierExpr {
 	return IdentifierExpr(v)
 }
 
-// String returns string expression
+// String returns string expression.
 func String(v string) StringExpr {
 	return StringExpr(v)
 }
 
-// StringExpr is a string expression
+// StringExpr is a string expression.
 type StringExpr string
 
 func (s StringExpr) String() string {
 	return fmt.Sprintf("%q", string(s))
 }
 
-// StringsExpr is a slice of strings
+// StringsExpr is a slice of strings.
 type StringsExpr []string
 
 func (s StringsExpr) String() string {
@@ -68,14 +68,14 @@ func (s StringsExpr) String() string {
 	return strings.Join(out, ",")
 }
 
-// Equals returns equals expression
+// Equals returns equals expression.
 func Equals(left, right Expr) EqualsExpr {
 	return EqualsExpr{Left: left, Right: right}
 }
 
 // EqualsExpr constructs function expression used in rules specifications
 // that checks if one value is equal to another
-// e.g. equals("a", "b") where Left is "a" and right is "b"
+// e.g. equals("a", "b") where Left is "a" and right is "b".
 type EqualsExpr struct {
 	// Left is a left argument of Equals expression
 	Left Expr
@@ -83,37 +83,37 @@ type EqualsExpr struct {
 	Right Expr
 }
 
-// String returns function call expression used in rules
+// String returns function call expression used in rules.
 func (i EqualsExpr) String() string {
 	return fmt.Sprintf("equals(%v, %v)", i.Left, i.Right)
 }
 
-// Not returns ! expression
+// Not returns ! expression.
 func Not(expr Expr) NotExpr {
 	return NotExpr{Expr: expr}
 }
 
 // NotExpr constructs function expression used in rules specifications
 // that negates the result of the boolean predicate
-// e.g. ! equals"a", "b") where Left is "a" and right is "b"
+// e.g. ! equals"a", "b") where Left is "a" and right is "b".
 type NotExpr struct {
 	// Expr is an expression to negate
 	Expr Expr
 }
 
-// String returns function call expression used in rules
+// String returns function call expression used in rules.
 func (n NotExpr) String() string {
 	return fmt.Sprintf("!%v", n.Expr)
 }
 
-// Contains returns contains function call expression
+// Contains returns contains function call expression.
 func Contains(a, b Expr) ContainsExpr {
 	return ContainsExpr{Left: a, Right: b}
 }
 
 // ContainsExpr constructs function expression used in rules specifications
 // that checks if one value contains the other, e.g.
-// contains([]string{"a"}, "b") where left is []string{"a"} and right is "b"
+// contains([]string{"a"}, "b") where left is []string{"a"} and right is "b".
 type ContainsExpr struct {
 	// Left is a left argument of Contains expression
 	Left Expr
@@ -121,12 +121,12 @@ type ContainsExpr struct {
 	Right Expr
 }
 
-// String rturns function call expression used in rules
+// String returns function call expression used in rules.
 func (i ContainsExpr) String() string {
 	return fmt.Sprintf("contains(%v, %v)", i.Left, i.Right)
 }
 
-// And returns && expression
+// And returns && expression.
 func And(left, right Expr) AndExpr {
 	return AndExpr{
 		Left:  left,
@@ -134,7 +134,7 @@ func And(left, right Expr) AndExpr {
 	}
 }
 
-// AndExpr returns && expression
+// AndExpr returns && expression.
 type AndExpr struct {
 	// Left is a left argument of && operator expression
 	Left Expr
@@ -142,12 +142,12 @@ type AndExpr struct {
 	Right Expr
 }
 
-// String returns expression text used in rules
+// String returns expression text used in rules.
 func (a AndExpr) String() string {
 	return fmt.Sprintf("%v && %v", a.Left, a.Right)
 }
 
-// Or returns || expression
+// Or returns || expression.
 func Or(left, right Expr) OrExpr {
 	return OrExpr{
 		Left:  left,
@@ -155,7 +155,7 @@ func Or(left, right Expr) OrExpr {
 	}
 }
 
-// OrExpr returns || expression
+// OrExpr returns || expression.
 type OrExpr struct {
 	// Left is a left argument of || operator expression
 	Left Expr
@@ -163,7 +163,7 @@ type OrExpr struct {
 	Right Expr
 }
 
-// String returns expression text used in rules
+// String returns expression text used in rules.
 func (a OrExpr) String() string {
 	return fmt.Sprintf("%v || %v", a.Left, a.Right)
 }
