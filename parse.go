@@ -63,7 +63,6 @@ func (p *predicateParser) parseNode(node ast.Expr) (interface{}, error) {
 	default:
 		return p.evaluateExpr(n)
 	}
-
 }
 
 func (p *predicateParser) evaluateArguments(nodes []ast.Expr) ([]interface{}, error) {
