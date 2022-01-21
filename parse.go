@@ -29,11 +29,8 @@ func (p *predicateParser) Parse(in string) (interface{}, error) {
 	return p.parseNode(expr)
 }
 
-func (p *predicateParser) parseNode(node ast.Node) (interface{}, error) {
+func (p *predicateParser) parseNode(node ast.Expr) (interface{}, error) {
 	switch n := node.(type) {
-	case *ast.BasicLit:
-		return literalToValue(n)
-
 	case *ast.BinaryExpr:
 		x, err := p.parseNode(n.X)
 		if err != nil {
@@ -46,25 +43,6 @@ func (p *predicateParser) parseNode(node ast.Node) (interface{}, error) {
 		}
 
 		return p.joinPredicates(n.Op, x, y)
-
-	case *ast.CallExpr:
-		// We expect function that will return predicate
-		name, err := getIdentifier(n.Fun)
-		if err != nil {
-			return nil, err
-		}
-
-		fn, err := p.getFunction(name)
-		if err != nil {
-			return nil, err
-		}
-
-		arguments, err := p.evaluateArguments(n.Args)
-		if err != nil {
-			return nil, err
-		}
-
-		return callFunction(fn, arguments)
 
 	case *ast.ParenExpr:
 		return p.parseNode(n.X)
@@ -81,9 +59,11 @@ func (p *predicateParser) parseNode(node ast.Node) (interface{}, error) {
 		}
 
 		return callFunction(joinFn, []interface{}{node})
+
+	default:
+		return p.evaluateExpr(n)
 	}
 
-	return nil, trace.BadParameter("unsupported %T", node)
 }
 
 func (p *predicateParser) evaluateArguments(nodes []ast.Expr) ([]interface{}, error) {
