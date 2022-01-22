@@ -282,14 +282,15 @@ func (s *PredicateSuite) TestGTFloat64() {
 	s.True(fn(5))
 }
 
-func (s *PredicateSuite) TestIdentifier() {
+func (s *PredicateSuite) TestSelectExpr() {
 	getID := func(fields []string) (interface{}, error) {
 		s.Equal([]string{"first", "second", "third"}, fields)
 		return 2, nil
 	}
 	p := s.getParserWithOpts(getID, nil)
 
-	pr, err := p.Parse("DivisibleBy(first.second.third)")
+	// Test selector expression.
+	pr, err := p.Parse("Remainder(4) <= first.second.third")
 	s.NoError(err)
 
 	s.IsType(divisibleBy(2), pr)
@@ -297,9 +298,19 @@ func (s *PredicateSuite) TestIdentifier() {
 	fn := pr.(numberPredicate)
 	s.True(fn(2))
 	s.False(fn(3))
+
+	// Test selector expression inside call expression.
+	pr, err = p.Parse("DivisibleBy(first.second.third)")
+	s.NoError(err)
+
+	s.IsType(divisibleBy(2), pr)
+
+	fn = pr.(numberPredicate)
+	s.True(fn(2))
+	s.False(fn(3))
 }
 
-func (s *PredicateSuite) TestMap() {
+func (s *PredicateSuite) TestIndexExpr() {
 	getID := func(fields []string) (interface{}, error) {
 		s.Equal([]string{"first", "second"}, fields)
 		return map[string]int{"key": 2}, nil
@@ -312,7 +323,8 @@ func (s *PredicateSuite) TestMap() {
 
 	p := s.getParserWithOpts(getID, getProperty)
 
-	pr, err := p.Parse(`DivisibleBy(first.second["key"])`)
+	// Test index expression.
+	pr, err := p.Parse(`Remainder(4) <= first.second["key"]`)
 	s.NoError(err)
 
 	s.IsType(divisibleBy(2), pr)
@@ -320,9 +332,19 @@ func (s *PredicateSuite) TestMap() {
 	fn := pr.(numberPredicate)
 	s.True(fn(2))
 	s.False(fn(3))
+
+	// Test index expression inside call expression.
+	pr, err = p.Parse(`DivisibleBy(first.second["key"])`)
+	s.NoError(err)
+
+	s.IsType(divisibleBy(2), pr)
+
+	fn = pr.(numberPredicate)
+	s.True(fn(2))
+	s.False(fn(3))
 }
 
-func (s *PredicateSuite) TestIdentifierAndFunction() {
+func (s *PredicateSuite) TestIdentifierExpr() {
 	getID := func(fields []string) (interface{}, error) {
 		switch fields[0] {
 		case "firstSlice":
@@ -333,6 +355,8 @@ func (s *PredicateSuite) TestIdentifierAndFunction() {
 			return "a", nil
 		case "b":
 			return "b", nil
+		case "num":
+			return 2, nil
 		}
 		return nil, nil
 	}
@@ -353,6 +377,12 @@ func (s *PredicateSuite) TestIdentifierAndFunction() {
 
 	fn = pr.(BoolPredicate)
 	s.False(fn())
+
+	pr, err = p.Parse("Remainder(4) <= num")
+	s.NoError(err)
+	fn2 := pr.(numberPredicate)
+	s.True(fn2(2))
+	s.False(fn2(3))
 }
 
 func (s *PredicateSuite) TestContains() {
