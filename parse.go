@@ -26,18 +26,18 @@ func (p *predicateParser) Parse(in string) (interface{}, error) {
 		return nil, err
 	}
 
-	return p.parseNode(expr)
+	return p.parse(expr)
 }
 
-func (p *predicateParser) parseNode(node ast.Expr) (interface{}, error) {
-	switch n := node.(type) {
+func (p *predicateParser) parse(expr ast.Expr) (interface{}, error) {
+	switch n := expr.(type) {
 	case *ast.BinaryExpr:
-		x, err := p.parseNode(n.X)
+		x, err := p.parse(n.X)
 		if err != nil {
 			return nil, err
 		}
 
-		y, err := p.parseNode(n.Y)
+		y, err := p.parse(n.Y)
 		if err != nil {
 			return nil, err
 		}
@@ -45,7 +45,7 @@ func (p *predicateParser) parseNode(node ast.Expr) (interface{}, error) {
 		return p.joinPredicates(n.Op, x, y)
 
 	case *ast.ParenExpr:
-		return p.parseNode(n.X)
+		return p.parse(n.X)
 
 	case *ast.UnaryExpr:
 		joinFn, err := p.getJoinFunction(n.Op)
@@ -53,7 +53,7 @@ func (p *predicateParser) parseNode(node ast.Expr) (interface{}, error) {
 			return nil, err
 		}
 
-		node, err := p.parseNode(n.X)
+		node, err := p.parse(n.X)
 		if err != nil {
 			return nil, err
 		}
