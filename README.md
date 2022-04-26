@@ -50,12 +50,12 @@ func main(){
     })
 
     pr, err := p.Parse("DivisibleBy(2) && DivisibleBy(3)")
-    if err == nil {
-        log.Fatalf("Error: %v", err)
-    }
+    if err != nil {
+		log.Fatalf("Error: %v", err)
+	}
 
-    pr.(numberPredicate)(2) // false
-    pr.(numberPredicate)(3) // false
-    pr.(numberPredicate)(6) // true
+	fmt.Println(pr.(numberPredicate)(2)) // false
+	fmt.Println(pr.(numberPredicate)(3)) // false
+	fmt.Println(pr.(numberPredicate)(6)) // true
 }
 ```
