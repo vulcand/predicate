@@ -2,9 +2,12 @@ module github.com/vulcand/predicate
 
 go 1.17
 
+// we use a pseudo version for github.com/gravitational/trace
+// because the a bump of GRPC has been made in this package and can influence predicate clients.
+// https://github.com/gravitational/trace/compare/14a9a7dd6aaf...v1.1.17
 require (
 	github.com/gravitational/trace v1.1.16-0.20220114165159-14a9a7dd6aaf
-	github.com/stretchr/testify v1.7.0
+	github.com/stretchr/testify v1.7.1
 )
 
 require (
