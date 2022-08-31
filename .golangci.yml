@@ -1,5 +1,5 @@
 run:
-  deadline: 5m
+  timeout: 5m
   skip-files: []
 
 linters-settings:
@@ -19,10 +19,17 @@ linters-settings:
 linters:
   enable-all: true
   disable:
-    - golint # deprecated
-    - maligned # deprecated
-    - interfacer # deprecated
     - scopelint # deprecated
+    - interfacer # deprecated
+    - maligned # deprecated
+    - golint # deprecated
+    - exhaustivestruct # deprecated
+    - scopelint # deprecated
+    - varcheck # deprecated
+    - structcheck # deprecated
+    - nosnakecase # deprecated
+    - deadcode # deprecated
+    - ifshort # deprecated
     - sqlclosecheck # not relevant (SQL)
     - rowserrcheck # not relevant (SQL)
     - cyclop # duplicate of gocyclo
@@ -34,7 +41,7 @@ linters:
     - goerr113
     - wrapcheck
     - exhaustive
-    - exhaustivestruct
+    - exhaustruct
     - testpackage
     - tparallel
     - paralleltest
@@ -44,6 +51,7 @@ linters:
     - varnamelen
     - nilnil
     - ireturn
+    - nonamedreturns
 
 issues:
   exclude-use-default: false
