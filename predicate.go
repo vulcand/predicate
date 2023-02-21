@@ -65,8 +65,7 @@ type Def struct {
 	Operators Operators
 	// Function matching is case sensitive, e.g. Len is different from len
 	Functions map[string]interface{}
-	// GetIdentifier returns value of any identifier passed in
-	// in the form []string{"id", "field", "subfield"}
+	// GetIdentifier returns value of any identifier passed in the form []string{"id", "field", "subfield"}
 	GetIdentifier GetIdentifierFn
 	// GetProperty returns property from a map
 	GetProperty GetPropertyFn
