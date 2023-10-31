@@ -21,6 +21,8 @@ func (s *PredicateSuite) getParser() Parser {
 }
 
 func (s *PredicateSuite) getParserWithOpts(getID GetIdentifierFn, getProperty GetPropertyFn) Parser {
+	s.T().Helper()
+
 	p, err := NewParser(Def{
 		Operators: Operators{
 			AND: numberAND,
@@ -87,7 +89,7 @@ func (s *PredicateSuite) TestSinglePredicateWithFunc() {
 	p := s.getParser()
 
 	pr, err := p.Parse("DivisibleBy(fnreturn(2))")
-	s.NoError(err)
+	s.Require().NoError(err)
 
 	s.IsType(divisibleBy(2), pr)
 

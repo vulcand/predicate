@@ -97,5 +97,5 @@ type Operators struct {
 
 // Parser takes the string with expression and calls the operators and functions.
 type Parser interface {
-	Parse(string) (interface{}, error)
+	Parse(in string) (interface{}, error)
 }

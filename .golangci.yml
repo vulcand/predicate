@@ -15,23 +15,47 @@ linters-settings:
   funlen:
     lines: -1
     statements: 50
+  godox:
+    keywords:
+      - FIXME
+  depguard:
+    rules:
+      main:
+        deny:
+          - pkg: "github.com/instana/testify"
+            desc: not allowed
+          - pkg: "github.com/pkg/errors"
+            desc: Should be replaced by standard lib errors package
+  testifylint:
+    enable:
+      - bool-compare
+      - compares
+      - empty
+      - error-is-as
+      - error-nil
+      - expected-actual
+      - float-compare
+      - len
+      - suite-dont-use-pkg
+      - suite-extra-assert-call
+      - suite-thelper
 
 linters:
   enable-all: true
   disable:
-    - scopelint # deprecated
+    - deadcode # deprecated
+    - exhaustivestruct # deprecated
+    - golint # deprecated
+    - ifshort # deprecated
     - interfacer # deprecated
     - maligned # deprecated
-    - golint # deprecated
-    - exhaustivestruct # deprecated
-    - scopelint # deprecated
-    - varcheck # deprecated
-    - structcheck # deprecated
     - nosnakecase # deprecated
-    - deadcode # deprecated
-    - ifshort # deprecated
+    - scopelint # deprecated
+    - structcheck # deprecated
+    - varcheck # deprecated
     - sqlclosecheck # not relevant (SQL)
     - rowserrcheck # not relevant (SQL)
+    - execinquery # not relevant (SQL)
     - cyclop # duplicate of gocyclo
     - lll
     - dupl
