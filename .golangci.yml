@@ -1,10 +1,10 @@
 run:
   timeout: 5m
-  skip-files: []
 
 linters-settings:
   govet:
-    check-shadowing: true
+    enable:
+      - shadow
   gocyclo:
     min-complexity: 20
   goconst:
@@ -27,19 +27,14 @@ linters-settings:
           - pkg: "github.com/pkg/errors"
             desc: Should be replaced by standard lib errors package
   testifylint:
-    enable:
-      - bool-compare
-      - compares
-      - empty
-      - error-is-as
-      - error-nil
-      - expected-actual
-      - float-compare
-      - len
-      - suite-dont-use-pkg
-      - suite-extra-assert-call
-      - suite-thelper
-
+    disable:
+      - require-error
+      - go-require
+  perfsprint:
+    err-error: true
+    errorf: true
+    sprintf1: true
+    strconcat: false
 linters:
   enable-all: true
   disable:
@@ -79,7 +74,7 @@ linters:
 
 issues:
   exclude-use-default: false
-  max-per-linter: 0
+  max-issues-per-linter: 0
   max-same-issues: 0
   exclude:
     - "Error return value of .((os\\.)?std(out|err)\\..*|.*Close|.*Flush|os\\.Remove(All)?|.*printf?|os\\.(Un)?Setenv). is not checked"

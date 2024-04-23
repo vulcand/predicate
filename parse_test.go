@@ -45,7 +45,7 @@ func (s *PredicateSuite) getParserWithOpts(getID GetIdentifierFn, getProperty Ge
 			"fnreturn": func(arg interface{}) (interface{}, error) {
 				return arg, nil
 			},
-			"fnerr": func(arg interface{}) (interface{}, error) {
+			"fnerr": func(_ interface{}) (interface{}, error) {
 				return nil, trace.BadParameter("don't like this parameter")
 			},
 		},
