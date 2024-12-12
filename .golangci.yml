@@ -1,5 +1,28 @@
-run:
-  timeout: 5m
+linters:
+  enable-all: true
+  disable:
+    - exportloopref # deprecated
+    - sqlclosecheck # not relevant (SQL)
+    - rowserrcheck # not relevant (SQL)
+    - cyclop # duplicate of gocyclo
+    - lll
+    - dupl
+    - wsl
+    - nlreturn
+    - mnd
+    - err113
+    - wrapcheck
+    - exhaustive
+    - exhaustruct
+    - testpackage
+    - tparallel
+    - paralleltest
+    - prealloc
+    - forcetypeassert
+    - varnamelen
+    - nilnil
+    - ireturn
+    - nonamedreturns
 
 linters-settings:
   govet:
@@ -35,32 +58,6 @@ linters-settings:
     errorf: true
     sprintf1: true
     strconcat: false
-linters:
-  enable-all: true
-  disable:
-    - execinquery # deprecated
-    - gomnd # deprecated
-    - sqlclosecheck # not relevant (SQL)
-    - rowserrcheck # not relevant (SQL)
-    - cyclop # duplicate of gocyclo
-    - lll
-    - dupl
-    - wsl
-    - nlreturn
-    - mnd
-    - err113
-    - wrapcheck
-    - exhaustive
-    - exhaustruct
-    - testpackage
-    - tparallel
-    - paralleltest
-    - prealloc
-    - forcetypeassert
-    - varnamelen
-    - nilnil
-    - ireturn
-    - nonamedreturns
 
 issues:
   exclude-use-default: false
@@ -74,3 +71,13 @@ issues:
       linters:
         - funlen
         - goconst
+
+output:
+  show-stats: true
+  sort-results: true
+  sort-order:
+    - file
+    - linter
+
+run:
+  timeout: 5m
