@@ -145,7 +145,7 @@ func GetFieldByTag(ival interface{}, tagName string, fieldNames []string) (inter
 	rest := fieldNames[1:]
 
 	valType := val.Type()
-	for i := 0; i < valType.NumField(); i++ {
+	for i := range valType.NumField() {
 		tagValue := valType.Field(i).Tag.Get(tagName)
 
 		parts := strings.Split(tagValue, ",")
