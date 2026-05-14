@@ -138,7 +138,7 @@ func GetFieldByTag(ival any, tagName string, fieldNames []string) (any, error) {
 	}
 
 	val := reflect.ValueOf(ival)
-	if val.Kind() == reflect.Interface || val.Kind() == reflect.Ptr {
+	if val.Kind() == reflect.Interface || val.Kind() == reflect.Pointer {
 		val = val.Elem()
 	}
 
